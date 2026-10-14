@@ -186,6 +186,26 @@ fetched from a CDN: `nostr-tools` is vendored (`vendor/nostr.mjs`, rebuilt with
 `scripts/vendor-nostr.sh`) and a test asserts that no shipped file references an
 external URL.
 
+### Live deployment
+
+**https://npub1t5ef2dw3wkz7t5qj4reyy7rp95mfu7e9heczf7azjasyus4nuasqdz0mgh.nsite.lol/**
+
+That npub is the dashboard's own identity — not a maintainer's, and not any
+router's. 11/11 files are on 3 of the 5 configured Blossom servers
+(`blossom.primal.net`, `cdn.hzrd149.com`, `nostr.download`); the other two
+refused (`cdn.sovbit.host` unreachable, `cdn.nostrcheck.me` 401/400). Three is
+enough — the kind-15128 manifest resolves a path, and any single server holding
+the blobs serves the site.
+
+`nsyte deploy` in 0.28.1 opens an interactive setup wizard and a secret-scan
+gate even when `--sec` is passed, and a piped stdin makes it re-render forever
+instead of reading input. `scripts/deploy-nsite-tty.py` drives it through a
+stdlib `pty` (neither `tmux` nor `expect` is installed on this host); the
+`nsyte scan` finding it answers is a reviewed false positive — nostr-tools'
+64-`a` forced-ping placeholder event id in the vendored library — and the
+script prints that reasoning when it answers, rather than bypassing the gate
+silently.
+
 See `docs/architecture.md` for the module map, the wire format, and the known
 cross-component gaps with the router side.
 
