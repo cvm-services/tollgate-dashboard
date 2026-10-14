@@ -1,0 +1,13 @@
+{
+  "tasks": {
+    "test": "deno test --allow-read --no-check tests/",
+    "vendor": "bash scripts/vendor-nostr.sh",
+    "dist": "bash scripts/build-dist.sh"
+  },
+  "fmt": {
+    "exclude": ["vendor/nostr.mjs", "node_modules/", "dist/", "test-results/"]
+  },
+  "lint": {
+    "exclude": ["vendor/nostr.mjs", "node_modules/", "dist/", "test-results/"]
+  }
+}
