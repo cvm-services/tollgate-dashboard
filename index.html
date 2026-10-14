@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>TollGate maintainer dashboard</title>
+<meta name="description" content="See and manage every TollGate router you own, over ContextVM. NIP-07 login; real data only.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<noscript>
+  <p class="banner banner-error">This dashboard needs JavaScript: it talks to your routers over Nostr relays from the browser, and it will not render a guess in place of real data.</p>
+</noscript>
+
+<header class="topbar">
+  <div class="brand">
+    <h1>TollGate maintainer dashboard</h1>
+    <p class="sub">Every router you own, over ContextVM. Read tools are open to any signed caller; write tools are maintainer-only.</p>
+  </div>
+  <div class="session" id="session">
+    <p class="muted">Not signed in.</p>
+  </div>
+</header>
+
+<main id="app" aria-live="polite">
+  <section id="login-panel" class="panel">
+    <h2>Sign in</h2>
+    <p id="login-message" class="muted">Checking for a NIP-07 browser extension…</p>
+    <button id="signin" type="button" disabled>Sign in with NIP-07</button>
+    <p class="fine">
+      Your private key never enters this page. There is no field to paste an nsec, and
+      there never will be: the page asks your extension to sign, and receives only
+      signatures. The ContextVM client key is derived from one signature over a fixed
+      message — see <code>README.md</code>.
+    </p>
+  </section>
+
+  <section id="discovery-panel" class="panel" hidden>
+    <div class="row">
+      <h2>Your routers</h2>
+      <div class="row-actions">
+        <span id="discovery-status" class="muted"></span>
+        <button id="refresh" type="button">Refresh</button>
+      </div>
+    </div>
+    <p id="discovery-detail" class="fine"></p>
+    <div id="routers" class="grid"></div>
+  </section>
+
+  <section id="actions-panel" class="panel" hidden>
+    <h2>Actions on <span id="actions-router"></span></h2>
+    <p class="fine">Every write tool is confirm-gated: nothing is sent until you confirm the exact tool and arguments.</p>
+    <div id="actions" class="actions"></div>
+    <pre id="action-result" class="output" hidden></pre>
+  </section>
+</main>
+
+<!--
+  Confirm gate for write tools. It is a real <dialog> so the browser enforces
+  modality: no write tool can be sent by a stray click on the page behind it.
+-->
+<dialog id="confirm-dialog">
+  <form method="dialog">
+    <h2>Confirm write action</h2>
+    <p class="fine">This changes the router's state. It is sent over Nostr, signed by your extension.</p>
+    <dl>
+      <dt>Router</dt><dd id="confirm-router" data-testid="confirm-router"></dd>
+      <dt>Tool</dt><dd id="confirm-tool" data-testid="confirm-tool"></dd>
+      <dt>Arguments</dt><dd><pre id="confirm-args" data-testid="confirm-args"></pre></dd>
+    </dl>
+    <menu>
+      <button id="confirm-cancel" value="cancel" type="submit">Cancel</button>
+      <button id="confirm-send" value="send" type="submit" class="danger">Send</button>
+    </menu>
+  </form>
+</dialog>
+
+<footer>
+  <p>
+    Static nsite, no backend. Discovery is the routers' own CEP-6 kind-11316
+    announcements, filtered by <code>#p</code> — the router is the source of
+    truth, not a registry.
+  </p>
+  <p>
+    Real data only: if a router does not answer, this page says so. It never
+    shows a plausible-looking value in place of a measurement.
+  </p>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
