@@ -1,0 +1,18 @@
+# Build/runtime artefacts
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+coverage/
+.cache/
+
+# Local deploy state written by `nsyte init` (contains a key — never commit)
+.nsite/config.json
+
+# Editor/OS noise
+*.swp
+.DS_Store
+
+# Scratch
+*.tmp
+.scratch/
