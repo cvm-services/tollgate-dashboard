@@ -300,27 +300,27 @@ test("a write action is confirm-gated: cancel sends nothing, send publishes the 
   await page.getByRole("button", { name: "Manage" }).first().click();
   await expect(page.locator("#actions-panel")).toBeVisible();
 
-  const writesBefore = (await publishedCalls(page, router.sk)).filter((c) => c.params.name === "service_restart").length;
+  const writesBefore = (await publishedCalls(page, router.sk)).filter((c) => c.params.name === "private_disable").length;
 
   // --- cancel: the dialog appears, shows the tool and args, and nothing is sent.
-  await page.locator('[data-write="service_restart"]').click();
+  await page.locator('[data-write="private_disable"]').click();
   const dialog = page.locator("#confirm-dialog");
   await expect(dialog).toBeVisible();
-  await expect(page.getByTestId("confirm-tool")).toHaveText("service_restart");
+  await expect(page.getByTestId("confirm-tool")).toHaveText("private_disable");
   await expect(page.getByTestId("confirm-args")).toHaveText("{}");
   await expect(page.getByTestId("confirm-router")).toContainText(nip19.npubEncode(getPublicKey(router.sk)));
   await page.getByRole("button", { name: "Cancel" }).click();
   await expect(dialog).toBeHidden();
   await expect(page.locator("#action-result")).toContainText("Cancelled");
-  expect((await publishedCalls(page, router.sk)).filter((c) => c.params.name === "service_restart").length).toBe(writesBefore);
+  expect((await publishedCalls(page, router.sk)).filter((c) => c.params.name === "private_disable").length).toBe(writesBefore);
 
   // --- send: exactly one request, carrying the tool name.
-  await page.locator('[data-write="service_restart"]').click();
+  await page.locator('[data-write="private_disable"]').click();
   await expect(dialog).toBeVisible();
   await page.getByRole("button", { name: "Send" }).click();
   await expect(dialog).toBeHidden();
-  await expect(page.locator("#action-result")).toContainText("service_restart");
-  const after = (await publishedCalls(page, router.sk)).filter((c) => c.params.name === "service_restart");
+  await expect(page.locator("#action-result")).toContainText("private_disable");
+  const after = (await publishedCalls(page, router.sk)).filter((c) => c.params.name === "private_disable");
   expect(after.length).toBe(writesBefore + 1);
 });
 

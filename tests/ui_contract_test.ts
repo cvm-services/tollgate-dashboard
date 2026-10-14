@@ -84,12 +84,84 @@ Deno.test("the tool catalog never contains a money or credential tool", () => {
     "private_disable",
     "private_enable",
     "private_rename",
-    "service_restart",
-    "service_start",
-    "service_stop",
   ]);
   for (const t of WRITE_TOOLS) assert.ok(t.args, `${t.name} must declare its arguments`);
   for (const t of READ_TOOLS) assert.equal(t.args, undefined, `${t.name} is a read tool and takes no arguments`);
+});
+
+/**
+ * CROSS-REPO CONTRACT: every tool this dashboard renders must exist in the
+ * router's `ToolSurface()`, and every tool the router exposes must be
+ * reachable here.
+ *
+ * This exists because the two sides drifted and nothing noticed: the
+ * dashboard shipped offering `logs`, `service_start`, `service_stop` and
+ * `service_restart`, all of which the router had REMOVED — the CLI implements
+ * `logs` client-side and the service verbs by exec'ing /etc/init.d locally, so
+ * none of them ever went through the socket. A maintainer clicking "Restart
+ * service" would have got an unknown-tool error, in production, with no test
+ * failing.
+ *
+ * The router's own surface is the source of truth, so it is PARSED from its
+ * source rather than duplicated here — a duplicate would drift the same way.
+ * The path is configurable because the two repos are checked out separately;
+ * when the router is absent the test says so instead of passing vacuously.
+ */
+Deno.test("every dashboard tool exists in the router's surface", () => {
+  const routerTools = Deno.env.get("TOLLGATE_CVM_TOOLS") ??
+    `${Deno.env.get("HOME")}/worktrees/tollgate-cvm/src/cmd/tollgate-cvm/tools.go`;
+
+  let src: string;
+  try {
+    src = Deno.readTextFileSync(routerTools);
+  } catch {
+    // Fail loudly rather than silently skipping: a contract test that passes
+    // when it cannot see the other side is worse than no test.
+    throw new Error(
+      `cannot read the router's tool surface at ${routerTools} — set TOLLGATE_CVM_TOOLS ` +
+        `to the path of tollgate-cvm/tools.go so this contract can actually be checked`,
+    );
+  }
+
+  const routerNames = [...src.matchAll(/Name:\s*"([a-z_]+)"/g)].map((m) => m[1]).sort();
+  assert.ok(routerNames.length > 10, `parsed only ${routerNames.length} tools — the parser has drifted`);
+
+  const dashboardNames = [...READ_TOOLS, ...WRITE_TOOLS].map((t) => t.name).sort();
+
+  const missingHere = routerNames.filter((n) => !dashboardNames.includes(n));
+  const notInRouter = dashboardNames.filter((n) => !routerNames.includes(n));
+
+  assert.deepEqual(
+    notInRouter,
+    [],
+    `the dashboard offers tools the router does not serve: ${notInRouter.join(", ")} — ` +
+      `clicking them fails at runtime with "unknown tool"`,
+  );
+  assert.deepEqual(
+    missingHere,
+    [],
+    `the router exposes tools the dashboard cannot reach: ${missingHere.join(", ")}`,
+  );
+
+  // The read/write split must agree too: a tool the dashboard treats as a
+  // write but the router treats as a read would skip the confirm gate.
+  //
+  // Matched per LINE, not with a `[^}]*?` span: a tool entry contains
+  // `CLIArgs: []string{"private", "disable"}`, so the `}` inside the composite
+  // literal terminated the span early and the match silently returned nothing.
+  // A silent empty result here would have made this half of the contract
+  // vacuous.
+  const routerWrites = src
+    .split("\n")
+    .filter((line) => /Name:\s*"[a-z_]+"/.test(line) && /Write:\s*true/.test(line))
+    .map((line) => line.match(/Name:\s*"([a-z_]+)"/)![1])
+    .sort();
+  assert.ok(routerWrites.length > 0, "parsed 0 write tools — the read/write split check would be vacuous");
+  assert.deepEqual(
+    routerWrites,
+    WRITE_TOOLS.map((t) => t.name).sort(),
+    "the read/write split disagrees between the dashboard and the router",
+  );
 });
 
 Deno.test("write tools are confirm-gated through a real modal dialog", () => {
