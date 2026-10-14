@@ -43,8 +43,8 @@ bash scripts/build-dist.sh
 RELAYS="wss://relay.primal.net,wss://nostr.mom,wss://offchain.pub,wss://relay.damus.io"
 SERVERS="https://blossom.primal.net,https://cdn.hzrd149.com,https://cdn.sovbit.host,https://cdn.nostrcheck.me,https://nostr.download"
 
-nsyte init --sec "$NSITE_NSEC" --relays "$RELAYS" --servers "$SERVERS" --site root --non-interactive
-nsyte deploy dist --sec "$NSITE_NSEC" --force --skip-secrets-scan --non-interactive
+nsyte init
+nsyte deploy dist --sec "$NSITE_NSEC" --relays "$RELAYS" --servers "$SERVERS" --force
 
 echo
 echo "deployed. gateway URLs (substitute the npub of the key you just used):"
