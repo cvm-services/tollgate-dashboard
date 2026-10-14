@@ -158,7 +158,7 @@ Then open it with a NIP-07 extension installed, and sign in.
 
 ```bash
 deno test --allow-read --no-check tests/   # 46 tests: protocol, discovery, identity, UI contracts
-npx playwright test                        # 9 browser tests: login, discovery, round trip, confirm gate, unreachable
+npx playwright test                        # 10 browser tests: login, no-provider, discovery, round trip, confirm gate, unreachable
 ```
 
 Both suites are **hermetic — no relay, no network**. The Deno suite drives the

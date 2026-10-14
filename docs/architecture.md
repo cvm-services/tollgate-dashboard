@@ -158,7 +158,7 @@ Two layers, both hermetic:
   against the real wire format. Plus source-level contracts: no key field, no
   CDN, no forbidden tool, every imported module exists, and the confirm gate is
   ordered correctly.
-- **Playwright** (`e2e/dashboard.spec.mjs`, 9 tests) — the DOM. A `window.nostr`
+- **Playwright** (`e2e/dashboard.spec.mjs`, 10 tests) — the DOM. A `window.nostr`
   double that really signs, a stub relay that hands every published gift wrap to
   Node, which unwraps it with the router's key and answers it. The app's real
   discovery, real p-tag filter, real NIP-59 client and real rendering are all in

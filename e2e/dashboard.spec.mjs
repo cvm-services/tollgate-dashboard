@@ -205,6 +205,17 @@ test("login is NIP-07: the session shows the maintainer's npub and the derived c
   expect(body).not.toContain(getPublicKey(maintainerSk).slice(0, 20));
 });
 
+test("with no NIP-07 provider the page says so and offers no way in", async ({ page }) => {
+  // No harness at all: no window.nostr, no test seam.
+  await page.goto("/index.html");
+
+  await expect(page.locator("#login-message")).toContainText("No NIP-07 extension found");
+  await expect(page.locator("#login-message")).toContainText("Alby, nos2x");
+  await expect(page.getByRole("button", { name: "Sign in with NIP-07" })).toBeDisabled();
+  // And there is no input to type a key into — the whole document has none.
+  await expect(page.locator("input")).toHaveCount(0);
+});
+
 test("discovery renders a router card from a synthetic kind-11316 announcement", async ({ page }) => {
   const maintainerSk = generateSecretKey();
   const maintainerHex = getPublicKey(maintainerSk);
