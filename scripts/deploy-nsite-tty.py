@@ -16,6 +16,7 @@ Usage: python3 scripts/deploy-nsite-tty.py
 import os
 import pty
 import select
+import subprocess
 import sys
 import time
 
@@ -73,6 +74,23 @@ def main():
     sec = read_key()
     if not (sec.startswith("nsec1") or len(sec) == 64):
         print(f"key file {KEY_FILE} does not hold an nsec or 64-hex key", file=sys.stderr)
+        return 1
+
+    # ALWAYS rebuild before deploying. `dist/` is gitignored, so it survives
+    # between runs and is trivially stale — deploying it as-is published a
+    # build WITHOUT the tool-catalog fix while the repo said otherwise, and
+    # the live site and the source disagreed with no error anywhere. The
+    # manifest hash of the deployed file matched the stale dist exactly,
+    # which is what gave it away. There is no reason to ever deploy a dist
+    # that was not just built from the working tree.
+    print("[deploy] building dist/ from the working tree ...", flush=True)
+    build = subprocess.run(
+        ["bash", "scripts/build-dist.sh"], cwd=ROOT, capture_output=True, text=True
+    )
+    sys.stdout.write(build.stdout)
+    sys.stderr.write(build.stderr)
+    if build.returncode != 0:
+        print(f"[deploy] build-dist.sh failed (rc={build.returncode}) — refusing to deploy", file=sys.stderr)
         return 1
 
     argv = [
